@@ -3,11 +3,15 @@ public class BaseBallCoach implements Coach
 {
 
 	@Override
-	public String getDailyworkOut() 
-	{
+	public String getDailyworkOut() {
 		// TODO Auto-generated method stub
 		return "practice back volley today";
 	}
 
+	@Override
+	public String getDailyFortune() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

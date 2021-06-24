@@ -1,6 +1,9 @@
 package org.example.model;
 public class SwimmingCoach implements Coach
 {
+	private FortuneService fortuneService;
+
+	// constructor injection
 
 	@Override
 	public String getDailyworkOut() {
@@ -8,4 +11,14 @@ public class SwimmingCoach implements Coach
 		return "practice back swimming today";
 	}
 
+	public SwimmingCoach(FortuneService fortuneService) {
+		super();
+		this.fortuneService = fortuneService;
+	}
+
+	@Override
+	public String getDailyFortune() {
+		// TODO Auto-generated method stub
+		return fortuneService.getDailyFortune();
+	}
 }
