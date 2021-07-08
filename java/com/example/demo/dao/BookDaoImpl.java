@@ -1,54 +1,88 @@
 package com.example.demo.dao;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.exception.BookNotFoundException;
 import com.example.demo.model.Book;
-@Component
+@Repository
+@EnableTransactionManagement
 public class BookDaoImpl implements BookDao{
 	
-	private Map<Integer, Book> bookMap;
+	private EntityManager entityManager;
 	
+
 	@Autowired
-	public BookDaoImpl(Map<Integer, Book> bookMap) {
-		this.bookMap = bookMap;
-		bookMap.put(new Random().nextInt(100), new Book(UUID.randomUUID().toString(), "Node JS", 20.9));
-		bookMap.put(new Random().nextInt(100), new Book(UUID.randomUUID().toString(), "ReactJS", 29.9));
-		bookMap.put(new Random().nextInt(100), new Book(UUID.randomUUID().toString(), "Angular JS", 29.7));
-		bookMap.put(new Random().nextInt(100), new Book(UUID.randomUUID().toString(), "Pro Spring", 30.8));
-		bookMap.put(new Random().nextInt(100), new Book(UUID.randomUUID().toString(), "Pro Java", 23.8));
+	public BookDaoImpl(EntityManager entityManager) {
+		this.entityManager = entityManager;
 	}
 
-
-
 	@Override
-	public Collection<Book> displayAllBook() {
-		// TODO Auto-generated method stu
-		System.out.println(bookMap);
-		return bookMap.values();
-	}
-
-
-
-	@Override
+	@Transactional
 	public Book createBook(Book book) {
-		book.setBookId(UUID.randomUUID().toString());
-		bookMap.put(new Random().nextInt(1000), book);
+		entityManager.persist(book);
 		return book;
 	}
 
-
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Book> getAllBook() {
+	
+		Query query=entityManager.createQuery("SELECT B FROM Book B",Book.class);
+		
+		return query.getResultList();
+	}
 
 	@Override
-	public Book findById(Integer id) {
-		
-		return bookMap.get(id);
+	@Transactional
+	public Book getBookById(Integer id)
+	{
+		Book book1= entityManager.find(Book.class, id);
+		if(book1==null)
+		{
+			throw new BookNotFoundException("book with the given id not found.");
+		}
+		return book1;
 	}
-	
 
+	@Override
+	
+	public Book getByBookId(String id) {
+		Query query=entityManager.createQuery("SELECT B FROM Book B WHERE B.bookId=:bId",Book.class);
+		query.setParameter("bId", id);
+		@SuppressWarnings("unchecked")
+		List<Book> list=query.getResultList();
+		if(list.isEmpty())
+		{
+			throw new BookNotFoundException("book with the given book_id not found.");
+		}
+		return list.get(0);
+	}
+
+	@Override
+	@Transactional
+	public Book updateBookByBookId(String bookId,Book book) {
+		Book book1=getByBookId(bookId);
+		book1.setBookName(book.getBookName());
+		book1.setBookPrice(book.getBookPrice());
+		entityManager.merge(book1);
+		return book1;
+	}
+
+	@Override
+	@Transactional
+	public String deleteByBookId(String bookId) {
+		// TODO Auto-generated method stub
+		
+		Book book=getByBookId(bookId);
+		entityManager.remove(book);
+		return "deleted sucessfully";
+	}
 }
